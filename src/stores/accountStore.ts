@@ -3,7 +3,7 @@ import { ref, onMounted } from 'vue'
 
 interface Account {
   id: string
-  label: string[]
+  label: { text: string }[]
   type: 'LDAP' | 'Локальная'
   login: string
   password: string | null
@@ -21,6 +21,13 @@ export const useAccountStore = defineStore('account', () => {
     accounts.value = accounts.value.filter((account) => account.id !== id)
   }
 
+  const updateAccountLabel = (id: string, label: { text: string }[]) => {
+    const account = accounts.value.find((acc) => acc.id === id)
+    if (account) {
+    account.label = label
+    }
+  }
+
   onMounted(() => {
     const savedAccounts = localStorage.getItem('accounts')
     if (savedAccounts) {
@@ -28,5 +35,5 @@ export const useAccountStore = defineStore('account', () => {
     }
   })
 
-  return { accounts, addAccount, removeAccount }
+  return { accounts, addAccount, removeAccount, updateAccountLabel }
 })

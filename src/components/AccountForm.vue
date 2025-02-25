@@ -8,7 +8,7 @@ const accountStore = useAccountStore();
 const newAccount = () => {
   accountStore.addAccount({
     id: uuidv4(),
-    label: '',
+    label: [],
     type: 'LDAP',
     login: '',
     password: null,
@@ -45,6 +45,17 @@ const removeAccount = (id: string) => {
   localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
 };
 
+const handleLabelBlur = (account: any) => {
+  const newLabel = account.labelInput
+    .split(';')
+    .map(text => ({ text: text.trim() }))
+    .filter(item => item.text.length > 0);
+
+  accountStore.updateAccountLabel(account.id, newLabel);
+
+  localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
+};
+
 const showPassword = ref(false);
 </script>
 
@@ -63,26 +74,27 @@ const showPassword = ref(false);
       </v-col>
     </v-row>
     
-        <v-alert
+      <v-alert
         cols="12" 
         type="info" 
         variant="tonal" 
         density="compact"
         class="my-3"
-        >
+      >
           Для указания нескольких меток одной пары логин/пароль используйте разделитель <strong>;</strong>
-        </v-alert>
+      </v-alert>
     
     <v-row v-for="account in accountStore.accounts" :key="account.id">
       <v-col cols="2">
         <v-text-field 
-          v-model="account.label" 
+          v-model.trim="account.labelInput" 
           label="Метка"  
           persistent-hint 
           maxlength="50"
-          @blur="account.label = account.label.split(';').map(text => text.trim()).filter(text => text.length > 0).join(';')"
+          @blur="handleLabelBlur(account)"
         ></v-text-field>
       </v-col>
+
       <v-col cols="2">
         <v-select 
           v-model="account.type" 
@@ -96,7 +108,6 @@ const showPassword = ref(false);
           v-model.trim="account.login" 
           label="Логин" 
           maxlength="100" 
-          @input="validateAccount(account)" 
           @blur="validateAccount(account)"
           :error="!account.isValid && (!account.login || !isLoginUnique(account))"
           :error-messages="!account.isValid && !account.login.trim() ? 'Логин не может быть пустым' : !isLoginUnique(account) ? 'Логин уже существует' : ''"
@@ -108,7 +119,6 @@ const showPassword = ref(false);
           label="Пароль" 
           :type="showPassword ? 'text' : 'password'" 
           maxlength="100" 
-          @input="validateAccount(account)"
           @blur="validateAccount(account)"
           :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
           @click:append="showPassword = !showPassword"
