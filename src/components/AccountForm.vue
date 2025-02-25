@@ -16,17 +16,23 @@ const newAccount = () => {
   });
 };
 
+const isLoginUnique = (account: any) => {
+  return !accountStore.accounts.some(
+    (acc) => acc.login === account.login && acc.id !== account.id
+  );
+};
+
 const validateAccount = (account: any) => {
   account.login = account.login.replace(/\s/g, '');
   if (account.password) {
     account.password = account.password.replace(/\s/g, '');
   }
 
-  const isLoginValid = !!account.login.trim();
+  const isLoginValid = !!account.login;
 
-  const isPasswordValid = account.type !== 'Локальная' || (account.password && account.password.trim().length > 0);
+  const isPasswordValid = account.type !== 'Локальная' || (account.password && account.password.length > 0);
 
-  account.isValid = isLoginValid && isPasswordValid;
+  account.isValid = isLoginValid && isLoginUnique && isPasswordValid;
 
   if (account.isValid) {
     localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
@@ -64,7 +70,7 @@ const showPassword = ref(false);
         density="compact"
         class="my-3"
         >
-        Для указания нескольких меток одной пары логин/пароль используйте разделитель <strong>;</strong>
+          Для указания нескольких меток одной пары логин/пароль используйте разделитель <strong>;</strong>
         </v-alert>
     
     <v-row v-for="account in accountStore.accounts" :key="account.id">
@@ -87,18 +93,18 @@ const showPassword = ref(false);
       </v-col>
       <v-col cols="3">
         <v-text-field 
-          v-model="account.login" 
+          v-model.trim="account.login" 
           label="Логин" 
           maxlength="100" 
           @input="validateAccount(account)" 
           @blur="validateAccount(account)"
-          :error="!account.isValid && !account.login.trim()"
-          :error-messages="!account.isValid && !account.login.trim() ? 'Логин не может быть пустым' : ''"
+          :error="!account.isValid && (!account.login || !isLoginUnique(account))"
+          :error-messages="!account.isValid && !account.login.trim() ? 'Логин не может быть пустым' : !isLoginUnique(account) ? 'Логин уже существует' : ''"
         ></v-text-field>
       </v-col>
       <v-col cols="3" v-if="account.type === 'Локальная'">
         <v-text-field 
-          v-model="account.password" 
+          v-model.trim="account.password" 
           label="Пароль" 
           :type="showPassword ? 'text' : 'password'" 
           maxlength="100" 
@@ -106,8 +112,8 @@ const showPassword = ref(false);
           @blur="validateAccount(account)"
           :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
           @click:append="showPassword = !showPassword"
-          :error="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.trim().length === 0)"
-          :error-messages="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.trim().length === 0) ? 'Пароль не может быть пустым' : ''"
+          :error="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0)"
+          :error-messages="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0) ? 'Пароль не может быть пустым' : ''"
         ></v-text-field>
       </v-col>
       <v-col cols="auto" class="d-flex align-center">
