@@ -13,6 +13,7 @@ const newAccount = () => {
     login: '',
     password: null,
     isValid: false,
+    showPassword: false,
   });
 };
 
@@ -30,9 +31,11 @@ const validateAccount = (account: any) => {
 
   const isLoginValid = !!account.login;
 
+  const isLoginUniqueValid = isLoginUnique(account);
+
   const isPasswordValid = account.type !== 'Локальная' || (account.password && account.password.length > 0);
 
-  account.isValid = isLoginValid && isLoginUnique && isPasswordValid;
+  account.isValid = isLoginValid && isLoginUniqueValid && isPasswordValid;
 
   if (account.isValid) {
     localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
@@ -55,8 +58,6 @@ const handleLabelBlur = (account: any) => {
 
   localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
 };
-
-const showPassword = ref(false);
 </script>
 
 <template>
@@ -103,6 +104,7 @@ const showPassword = ref(false);
           :disabled="account.isValid"
         ></v-select>
       </v-col>
+
       <v-col cols="3">
         <v-text-field 
           v-model.trim="account.login" 
@@ -114,20 +116,22 @@ const showPassword = ref(false);
           :disabled="account.isValid"
         ></v-text-field>
       </v-col>
+
       <v-col cols="3" v-if="account.type === 'Локальная'">
         <v-text-field 
           v-model.trim="account.password" 
           label="Пароль" 
-          :type="showPassword ? 'text' : 'password'" 
+          :type="account.showPassword ? 'text' : 'password'" 
           maxlength="100" 
           @blur="validateAccount(account)"
-          :append-icon="showPassword ? 'mdi-eye-off' : 'mdi-eye'"
-          @click:append="showPassword = !showPassword"
+          :append-icon="account.showPassword ? 'mdi-eye-off' : 'mdi-eye'"
+          @click:append="account.showPassword = !account.showPassword"
           :error="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0)"
           :error-messages="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0) ? 'Пароль не может быть пустым' : ''"
           :readonly="account.isValid"
         ></v-text-field>
       </v-col>
+
       <v-col cols="auto" class="d-flex align-center">
         <v-btn
           color="error"
