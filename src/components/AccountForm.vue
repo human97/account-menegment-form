@@ -61,8 +61,7 @@ const showPassword = ref(false);
 
 <template>
   <v-container>
-    <v-row>
-      <v-col cols="12" class="d-flex align-center">
+    <v-row cols="12" class="d-flex align-center pa-3">
         <h2>Управление учетными записями</h2>
         <v-btn
           color="primary"
@@ -71,18 +70,18 @@ const showPassword = ref(false);
         >
           <v-icon>mdi-plus</v-icon>
         </v-btn>
-      </v-col>
     </v-row>
     
-      <v-alert
-        cols="12" 
-        type="info" 
-        variant="tonal" 
-        density="compact"
-        class="my-3"
-      >
-          Для указания нескольких меток одной пары логин/пароль используйте разделитель <strong>;</strong>
-      </v-alert>
+    <v-alert
+      v-if="accountStore.accounts.length > 0"
+      cols="12" 
+      type="info" 
+      variant="tonal" 
+      density="compact"
+      class="my-3"
+    >
+        Для указания нескольких меток одной пары логин/пароль используйте разделитель <strong>;</strong>
+    </v-alert>    
     
     <v-row v-for="account in accountStore.accounts" :key="account.id">
       <v-col cols="2">
@@ -101,6 +100,7 @@ const showPassword = ref(false);
           :items="['LDAP', 'Локальная']" 
           label="Тип записи" 
           @update:model-value="validateAccount(account)"
+          :disabled="account.isValid"
         ></v-select>
       </v-col>
       <v-col cols="3">
@@ -111,6 +111,7 @@ const showPassword = ref(false);
           @blur="validateAccount(account)"
           :error="!account.isValid && (!account.login || !isLoginUnique(account))"
           :error-messages="!account.isValid && !account.login.trim() ? 'Логин не может быть пустым' : !isLoginUnique(account) ? 'Логин уже существует' : ''"
+          :disabled="account.isValid"
         ></v-text-field>
       </v-col>
       <v-col cols="3" v-if="account.type === 'Локальная'">
@@ -124,6 +125,7 @@ const showPassword = ref(false);
           @click:append="showPassword = !showPassword"
           :error="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0)"
           :error-messages="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0) ? 'Пароль не может быть пустым' : ''"
+          :readonly="account.isValid"
         ></v-text-field>
       </v-col>
       <v-col cols="auto" class="d-flex align-center">
