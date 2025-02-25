@@ -42,6 +42,11 @@ const validateAccount = (account: any) => {
   }
 };
 
+const saveValidAccounts = () => {
+  const validAccounts = accountStore.accounts.filter(account => account.isValid);
+  localStorage.setItem('accounts', JSON.stringify(validAccounts));
+};
+
 const removeAccount = (id: string) => {
   accountStore.removeAccount(id);
 
@@ -55,9 +60,12 @@ const handleLabelBlur = (account: any) => {
     .filter(item => item.text.length > 0);
 
   accountStore.updateAccountLabel(account.id, newLabel);
-
-  localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
+  saveValidAccounts(); 
 };
+
+watch(() => accountStore.accounts, (newAccounts) => {
+  saveValidAccounts();
+}, { deep: true });
 </script>
 
 <template>
