@@ -1,9 +1,9 @@
 <script setup lang="ts">
-import AccountForm from '@/components/AccountForm.vue'
+import AccountManagement from '@/components/AccountManagement.vue'
 </script>
 
 <template>
   <main>
-    <AccountForm />
+    <AccountManagement />
   </main>
 </template>
