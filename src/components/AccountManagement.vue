@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
 import { useAccountStore } from '@/stores/accountStore';
 import { nanoid } from 'nanoid';
 import AccountList from '@/components/AccountList.vue';

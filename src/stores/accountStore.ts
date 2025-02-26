@@ -1,5 +1,5 @@
 import { defineStore } from 'pinia'
-import { ref, onMounted } from 'vue'
+import { ref, watch, onMounted, computed } from 'vue'
 
 interface Account {
   id: string
@@ -14,27 +14,34 @@ interface Account {
 export const useAccountStore = defineStore('account', () => {
   const accounts = ref<Account[]>([])
 
+  const validAccounts = computed(() => {
+    return accounts.value.filter((account) => account.isValid)
+  })
+
   const saveToLocalStorage = () => {
-    localStorage.setItem('accounts', JSON.stringify(accounts.value))
+    localStorage.setItem('accounts', JSON.stringify(validAccounts.value))
   }
+
+    watch(
+      accounts,
+      (newAccounts) => {
+        saveToLocalStorage()
+      },
+      { deep: true }
+    )
 
   const addAccount = (account: Account) => {
     accounts.value.push(account)
-      if (account.isValid) {
-        saveToLocalStorage()
-      }
   }
 
   const removeAccount = (id: string) => {
     accounts.value = accounts.value.filter((account) => account.id !== id)
-    saveToLocalStorage() 
   }
 
   const updateAccountLabel = (id: string, label: { text: string }[]) => {
     const account = accounts.value.find((acc) => acc.id === id)
     if (account) {
       account.label = label
-      saveToLocalStorage() 
     }
   }
 
@@ -60,10 +67,6 @@ export const useAccountStore = defineStore('account', () => {
       !!(account.password && account.password.length > 0)
 
     account.isValid = isLoginValid && isLoginUniqueValid && isPasswordValid
-
-    if (account.isValid) {
-    saveToLocalStorage()
-    }
   }
 
   onMounted(() => {
@@ -75,6 +78,7 @@ export const useAccountStore = defineStore('account', () => {
 
   return {
     accounts,
+    validAccounts,
     addAccount,
     removeAccount,
     updateAccountLabel,
