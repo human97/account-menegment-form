@@ -1,14 +1,14 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
 import { useAccountStore } from '@/stores/accountStore';
-import { v4 as uuidv4 } from 'uuid';
+import { nanoid } from 'nanoid';
 import AccountList from '@/components/AccountList.vue';
 
 const accountStore = useAccountStore();
 
 const newAccount = () => {
   accountStore.addAccount({
-    id: uuidv4(),
+    id: nanoid(),
     label: [],
     type: 'LDAP',
     login: '',
