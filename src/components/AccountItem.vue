@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { useAccountStore } from '@/stores/accountStore';
+import type { Account, AccountType } from '@/types/account' 
 
-const props = defineProps({
-  account: {
-    type: Object,
-    required: true,
-  },
-});
+const props = defineProps<{
+  account: Account
+}>();
+
+const accountTypes: AccountType[] = ['LDAP', 'Локальная']
 
 const accountStore = useAccountStore();
 
@@ -16,17 +16,16 @@ const isUnique = accountStore.isLoginUnique(props.account);
 
 const removeAccount = () => {
   accountStore.removeAccount(props.account.id);
-  localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
 };
 
 const handleLabelBlur = () => {
-  const newLabel = props.account.labelInput
+   const labelInput = props.account.labelInput || '';
+  const newLabel = labelInput
     .split(';')
     .map(text => ({ text: text.trim() }))
     .filter(item => item.text.length > 0);
 
   accountStore.updateAccountLabel(props.account.id, newLabel);
-  localStorage.setItem('accounts', JSON.stringify(accountStore.accounts));
 };
 </script>
 
@@ -45,7 +44,7 @@ const handleLabelBlur = () => {
     <v-col cols="2">
       <v-select 
         v-model="account.type" 
-        :items="['LDAP', 'Локальная']" 
+        :items="accountTypes" 
         label="Тип записи" 
         @update:model-value="accountStore.validateAccount(account)"
         :disabled="account.isValid"
@@ -59,7 +58,7 @@ const handleLabelBlur = () => {
         maxlength="100" 
         @blur="accountStore.validateAccount(account)"
         :error="!account.isValid && (!account.login || !accountStore.isLoginUnique(account))"
-        :error-messages="!account.isValid && !account.login.trim() ? 'Логин не может быть пустым' : !accountStore.isLoginUnique(account) ? 'Логин уже существует' : ''"
+        :error-messages="!account.isValid && !account.login ? 'Логин не может быть пустым' : !accountStore.isLoginUnique(account) ? 'Логин уже существует' : ''"
         :disabled="account.isValid"
       ></v-text-field>
     </v-col>

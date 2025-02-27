@@ -1,15 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, watch, onMounted, computed } from 'vue'
-
-interface Account {
-  id: string
-  label: { text: string }[]
-  type: 'LDAP' | 'Локальная'
-  login: string
-  password: string | null
-  isValid: boolean
-  showPassword?: boolean
-}
+import type { Account } from '@/types/account' 
 
 export const useAccountStore = defineStore('account', () => {
   const accounts = ref<Account[]>([])
