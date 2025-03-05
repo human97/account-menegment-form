@@ -1,25 +1,25 @@
 <script setup lang="ts">
+import { computed, ref } from 'vue';
 import { useAccountStore } from '@/stores/accountStore';
-import type { Account, AccountType } from '@/types/account' 
+import type { Account } from '@/types/account';
+import { ACCOUNT_TYPES, ERROR_MESSAGES } from '@/constants'; 
 
 const props = defineProps<{
   account: Account
 }>();
 
-const accountTypes: AccountType[] = ['LDAP', 'Локальная']
-
 const accountStore = useAccountStore();
 
 accountStore.validateAccount(props.account);
 
-const isUnique = accountStore.isLoginUnique(props.account);
+const isUnique = computed(() => accountStore.isLoginUnique(props.account));
 
 const removeAccount = () => {
   accountStore.removeAccount(props.account.id);
 };
 
 const handleLabelBlur = () => {
-   const labelInput = props.account.labelInput || '';
+  const labelInput = props.account.labelInput || '';
   const newLabel = labelInput
     .split(';')
     .map(text => ({ text: text.trim() }))
@@ -27,6 +27,17 @@ const handleLabelBlur = () => {
 
   accountStore.updateAccountLabel(props.account.id, newLabel);
 };
+
+const isLoginError = computed(() => !props.account.isValid && (!props.account.login || !isUnique.value));
+const loginErrorMessage = computed(() => {
+  if (!props.account.isValid && !props.account.login) return ERROR_MESSAGES.EMPTY_LOGIN;
+  if (!isUnique.value) return ERROR_MESSAGES.LOGIN_EXISTS;
+  return '';
+});
+
+const isPasswordError = computed(() => !props.account.isValid && props.account.type === 'Локальная' && (!props.account.password || props.account.password.length === 0));
+
+const passwordErrorMessage = computed(() => isPasswordError.value ? ERROR_MESSAGES.EMPTY_PASSWORD : '');
 </script>
 
 <template>
@@ -44,7 +55,7 @@ const handleLabelBlur = () => {
     <v-col cols="2">
       <v-select 
         v-model="account.type" 
-        :items="accountTypes" 
+        :items="ACCOUNT_TYPES" 
         label="Тип записи" 
         @update:model-value="accountStore.validateAccount(account)"
         :disabled="account.isValid"
@@ -57,8 +68,8 @@ const handleLabelBlur = () => {
         label="Логин" 
         maxlength="100" 
         @blur="accountStore.validateAccount(account)"
-        :error="!account.isValid && (!account.login || !accountStore.isLoginUnique(account))"
-        :error-messages="!account.isValid && !account.login ? 'Логин не может быть пустым' : !accountStore.isLoginUnique(account) ? 'Логин уже существует' : ''"
+        :error="isLoginError"
+        :error-messages="loginErrorMessage"
         :disabled="account.isValid"
       ></v-text-field>
     </v-col>
@@ -72,8 +83,8 @@ const handleLabelBlur = () => {
         @blur="accountStore.validateAccount(account)"
         :append-icon="account.showPassword ? 'mdi-eye-off' : 'mdi-eye'"
         @click:append="account.showPassword = !account.showPassword"
-        :error="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0)"
-        :error-messages="!account.isValid && account.type === 'Локальная' && (!account.password || account.password.length === 0) ? 'Пароль не может быть пустым' : ''"
+        :error="isPasswordError"
+        :error-messages="passwordErrorMessage"
         :readonly="account.isValid"
       ></v-text-field>
     </v-col>

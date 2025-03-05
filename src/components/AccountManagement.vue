@@ -2,6 +2,7 @@
 import { useAccountStore } from '@/stores/accountStore';
 import { nanoid } from 'nanoid';
 import AccountList from '@/components/AccountList.vue';
+import { LABEL_HINT } from '@/constants';
 
 const accountStore = useAccountStore();
 
@@ -39,7 +40,7 @@ const newAccount = () => {
       density="compact"
       class="my-3"
     >
-        Для указания нескольких меток одной пары логин/пароль используйте разделитель <strong>;</strong>
+      {{ LABEL_HINT }}
     </v-alert>    
     
     <AccountList />
